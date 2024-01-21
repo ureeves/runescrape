@@ -3,13 +3,16 @@ import os
 
 from bs4 import BeautifulSoup
 
-elements = ["water", "earth", "fire", "air"]
+attacks = ["water", "earth", "fire", "air", "slash", "crush", "stab"]
 
 index_urls = {
     "water": "https://runescape.wiki/w/Category:Weak_to_water_spells",
     "earth": "https://runescape.wiki/w/Category:Weak_to_earth_spells",
     "fire": "https://runescape.wiki/w/Category:Weak_to_fire_spells",
     "air": "https://runescape.wiki/w/Category:Weak_to_air_spells",
+    "slash": "https://runescape.wiki/w/Category:Weak_to_slash_attacks",
+    "crush": "https://runescape.wiki/w/Category:Weak_to_crush_attacks",
+    "stab": "https://runescape.wiki/w/Category:Weak_to_stab_attacks",
 }
 
 
@@ -31,15 +34,15 @@ def get_entity_html(base_dir, name, url):
             return index
 
 
-def get_index_html(elem, url):
-    return get_entity_html("data", f"index_{elem}", url)
+def get_index_html(attack, url):
+    return get_entity_html("data", f"index_{attack}", url)
 
 
-def get_npcs(elem_soup):
+def get_npcs(soup):
     base_url = "https://runescape.wiki"
     npcs = {}
 
-    for tag in elem_soup.select(".mw-category-group ul li a"):
+    for tag in soup.select(".mw-category-group ul li a"):
         name = tag.text
         url = f"{base_url}{tag.get('href')}"
         npcs[name] = url
@@ -73,25 +76,25 @@ def get_npc_info(npc_soup):
 
 if __name__ == "__main__":
     with open(f"data/npcs.csv", "a", encoding="utf-8") as npcs_file:
-        npcs_file.write("Name;Element Weakness;Combat Level;Life Points;Members Only;\n")
+        npcs_file.write("Name;Attack Weakness;Combat Level;Life Points;Members Only;\n")
 
-        for element in elements:
-            element_url = index_urls[element]
-            element_index = get_index_html(element, element_url)
+        for attack in attacks:
+            attack_url = index_urls[attack]
+            attack_index = get_index_html(attack, attack_url)
 
-            element_soup = BeautifulSoup(element_index, "html.parser")
-            element_npcs = get_npcs(element_soup)
+            attack_soup = BeautifulSoup(attack_index, "html.parser")
+            attack_npcs = get_npcs(attack_soup)
 
-            for element_npc in element_npcs:
-                element_npc_url = element_npcs[element_npc]
-                element_npc_html = get_npc_html(element_npc, element_npc_url)
+            for attack_npc in attack_npcs:
+                attack_npc_url = attack_npcs[attack_npc]
+                attack_npc_html = get_npc_html(attack_npc, attack_npc_url)
 
-                element_npc_soup = BeautifulSoup(element_npc_html, "html.parser")
-                element_npc_info = get_npc_info(element_npc_soup)
+                attack_npc_soup = BeautifulSoup(attack_npc_html, "html.parser")
+                attack_npc_info = get_npc_info(attack_npc_soup)
 
-                npcs_file.write(f"{element_npc_info['name']};"
-                                f"{element};"
-                                f"{element_npc_info['combat_level']};"
-                                f"{element_npc_info['life_points']};"
-                                f"{element_npc_info['members_only']};"
+                npcs_file.write(f"{attack_npc_info['name']};"
+                                f"{attack};"
+                                f"{attack_npc_info['combat_level']};"
+                                f"{attack_npc_info['life_points']};"
+                                f"{attack_npc_info['members_only']};"
                                 f"\n")
